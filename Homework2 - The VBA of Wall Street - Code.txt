@@ -1,0 +1,210 @@
+'Holly Bergen'
+'30Jan2019'
+'Stock Data'
+
+Sub RunAllWorksheets()
+
+'-------------------------------------------------------------'
+' Run code along all Worksheets in a Workbook (using Call())  '
+'                                                             '
+'                       PRESS F5 to run!                      '
+'-------------------------------------------------------------'
+
+    Dim xSh As Worksheet
+    Application.ScreenUpdating = False
+    For Each xSh In Worksheets
+        xSh.Select
+        Call stocks
+    Next
+    Application.ScreenUpdating = True
+    
+End Sub
+
+
+Sub stocks()
+
+'---------------------------------------------------------------------'
+' Create a script that will loop through each year of stock data and  '
+'   grab the total amount of volume each stock had over the year.     '
+'---------------------------------------------------------------------'
+
+'Create new columns for output'
+    Range("I1").Select
+    ActiveCell.FormulaR1C1 = "Ticker"
+    Range("J1").Select
+    ActiveCell.FormulaR1C1 = "Total Stock Volume"
+    Columns("J:J").Select
+    Columns("J:J").EntireColumn.AutoFit
+    Range("I1:J1").Select
+    Selection.Font.Bold = True
+    Columns("J:J").Select
+    Selection.Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    Selection.Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    Range("J1").Select
+    ActiveCell.FormulaR1C1 = "Yearly Change"
+    Range("K1").Select
+    ActiveCell.FormulaR1C1 = "Percent Change"
+    Columns("J:K").Select
+    Columns("J:K").EntireColumn.AutoFit
+    Columns("K:K").Select
+    Selection.Style = "Percent"
+    Range("N2").Select
+    ActiveCell.FormulaR1C1 = "Greatest % Increase"
+    Range("N3").Select
+    ActiveCell.FormulaR1C1 = "Greatest % Decrease"
+    Range("N4").Select
+    ActiveCell.FormulaR1C1 = "Greatest Total Volume"
+    Range("N2:N4").Select
+    Selection.Font.Bold = True
+    Columns("N:N").EntireColumn.AutoFit
+    Range("N8").Select
+    Range("O1").Select
+    ActiveCell.FormulaR1C1 = "Ticker"
+    Range("P1").Select
+    ActiveCell.FormulaR1C1 = "Value"
+    Range("P2:P3").Select
+    Selection.Style = "Percent"
+    
+    
+'Set variables'
+Dim Tickers As String
+Dim lRow As Double
+Dim iRow As Double
+Dim tRow As Double
+Dim yRow As Double
+Dim pRow As Double
+Dim opening As Double
+Dim closing As Double
+Dim yearlyChange As Double
+Dim percentChange As Double
+
+
+'Make sure counter is set to 0 initally'
+tickCount = 0
+
+'Set counter for # of rows in column 1'
+lRow = Cells(Rows.Count, 1).End(xlUp).Row
+
+    'Loop through all ticker names'
+    For i = 2 To lRow
+
+    'Record Opening Stock value'
+    opening = Cells(2, 3).Value
+            
+        'Check if cells have the same ticker name'
+        If Cells(i + 1, 1).Value = Cells(i, 1).Value Then
+    
+            'Add all the values of Volume to tickCount variable'
+            tickCount = Cells(i, 7).Value + tickCount
+        
+            'If cells DON'T have same ticker name...'
+            ElseIf Cells(i + 1, 1).Value <> Cells(i, 1).Value Then
+            'MsgBox (Cells(i, 1).Value)'
+            
+                'Add all the values of Volume to tickCount variable from LAST row'
+                tickCount = Cells(i - 1, 7).Value + tickCount
+            
+                'Record Closing Stock value of LAST row'
+                closing = Cells(i - 1, 6).Value
+                
+                '--------'
+                ' Ticker '
+                '--------'
+                
+                'Count number of rowns in column I (Ticker)'
+                iRow = Cells(Rows.Count, 9).End(xlUp).Offset(1, 0).Row
+                'Print Ticker Name into "Ticker"
+                Range("I" & iRow).Value = Cells(i - 1, 1).Value
+                
+                '---------------'
+                ' Yearly Change '
+                '---------------'
+                
+                'Calculate difference between closing and opening values &'
+                'Record to Yearly Change'
+                yearlyChange = closing - opening
+                yRow = Cells(Rows.Count, 10).End(xlUp).Offset(1, 0).Row
+                'Print into "Yearly Change"
+                Range("J" & yRow).Value = yearlyChange
+                
+                    'Format Cell using conditional'
+                    If yearlyChange > 1 Then
+                        Range("J" & yRow).Interior.ColorIndex = 4
+                    
+                        ElseIf yearlyChange < 1 Then
+                            Range("J" & yRow).Interior.ColorIndex = 3
+                    End If
+                
+                '----------------'
+                ' Percent Change '
+                '----------------'
+                
+                'Calculate difference between closing and opening values &'
+                'Record to Percent Change (as percentage value)'
+                percentChange = (closing - opening) / 100
+                pRow = Cells(Rows.Count, 11).End(xlUp).Offset(1, 0).Row
+                'Print into Percent Change"
+                Range("K" & pRow).Value = percentChange
+                
+                '--------------------'
+                ' Total Stock Volume '
+                '--------------------'
+                
+                'Count number of rows in column J (Total Stock Volume)'
+                tRow = Cells(Rows.Count, 12).End(xlUp).Offset(1, 0).Row
+                'Print current tickCount into "Total Stock Volume"
+                Range("L" & tRow).Value = tickCount
+                
+                'Reset ticker'
+                tickCount = 0
+                
+                'Record Opening Stock value of NEW row'
+                opening = Cells(i, 3).Value
+    End If
+    
+  Next i
+  
+'--------------------------------------------------------------------------'
+'   Locate the stock with the "Greatest % increase", "Greatest % Decrease" '
+'                        and "Greatest total volume"                       '
+'--------------------------------------------------------------------------'
+  
+
+'Find and print Max Value of Percentage'
+Dim MaxValue As Double
+pRow = Cells(Rows.Count, 11).End(xlUp).Row
+MaxValue = Application.WorksheetFunction.Max(Range("K:K"))
+'Range("P2").Value = MaxValue
+
+    For j = 2 To pRow
+        If Cells(j, 11).Value = MaxValue Then
+            Range("P2").Value = MaxValue
+            Range("O2").Value = Cells(j, 9).Value
+        End If
+    Next
+  
+'Find and print Min Value of Percentage'
+Dim MinValue As Double
+MinValue = Application.WorksheetFunction.Min(Range("K:K"))
+'Range("P3").Value = MinValue
+
+    For k = 2 To pRow
+        If Cells(k, 11).Value = MinValue Then
+            Range("P3").Value = MinValue
+            Range("O3").Value = Cells(k, 9).Value
+        End If
+    Next
+
+'Find and print Max Value of Volume'
+Dim MaxVolume As Double
+MaxVolume = Application.WorksheetFunction.Max(Range("L:L"))
+'Range("P4").Value = MaxVolume
+
+    For l = 2 To pRow
+        If Cells(l, 12).Value = MaxVolume Then
+            Range("P4").Value = MaxVolume
+            Range("O4").Value = Cells(l, 9).Value
+        End If
+    Next
+
+End Sub
